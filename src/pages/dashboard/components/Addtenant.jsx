@@ -1,11 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "../../../api/axios";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/select";
-import { Label } from "../../../components/ui/label";
-import { toast } from "react-hot-toast";
 
 export default function AddTenant() {
   const [form, setForm] = useState({
@@ -14,148 +8,136 @@ export default function AddTenant() {
     ownerEmail: "",
     phone: "",
     city: "",
-    planId: "", // store plan _id
+    plan: "Free",
   });
 
-  const [plans, setPlans] = useState([]); // list of plans from backend
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // Fetch plans on mount
-  useEffect(() => {
-    const fetchPlans = async () => {
-      try {
-        const res = await axiosInstance.get("/plans");
-        setPlans(res.data); // assume backend returns array of plans [{_id, name}]
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to load plans");
-      }
-    };
-    fetchPlans();
-  }, []);
-
-const plansArray = useMemo(() => {
-    if (!plans) return [];
-    if (plans.plans && Array.isArray(plans.plans)) {
-      return plans.plans;
-    }
-    if (Array.isArray(plans)) {
-      return plans;
-    }
-    
-    console.warn("Unexpected plans structure:", plans);
-    return [];
-  }, [plans]);
-
-  const filteredPlans = useMemo(() => {
-    if (!plansArray || plansArray.length === 0) return [];
-    
-    // Group plans by name
-    const planGroups = {};
-    plansArray.forEach(plan => {
-      if (!planGroups[plan.name]) {
-        planGroups[plan.name] = [];
-      }
-      planGroups[plan.name].push(plan);
-    });
-    
-    const result = [];
-    Object.keys(planGroups).forEach(planName => {
-      const groupPlans = planGroups[planName];
-      groupPlans.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      result.push(groupPlans[0]);
-    });
-    
-    return result;
-  }, [plansArray]);
-
-
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setError("");
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.companyName || !form.ownerName || !form.ownerEmail || !form.phone || !form.city || !form.planId) {
-      toast.error("Please fill all fields.");
+
+    // Basic validation
+    if (
+      !form.companyName ||
+      !form.ownerName ||
+      !form.ownerEmail ||
+      !form.phone ||
+      !form.city
+    ) {
+      setError("Please fill all fields.");
       return;
     }
 
-    try {
-      setLoading(true);
-      await axiosInstance.post("/tenants/create", form, { withCredentials: true });
-      toast.success("Tenant created successfully!");
-      navigate("/dashboard");
-    } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.message || "Failed to create tenant");
-    } finally {
-      setLoading(false);
-    }
+    // Submit to backend or mock save
+    console.log("Tenant created:", form);
+
+    // Redirect to tenant list or dashboard
+    navigate("/dashboard"); // or /tenants
   };
 
   return (
     <div className="max-w-xl mx-auto p-6 bg-white shadow rounded mt-6">
       <h2 className="text-2xl font-bold mb-4">Add New Tenant</h2>
+
+      {error && (
+        <p className="text-red-600 bg-red-100 p-2 rounded mb-4">{error}</p>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-4">
-
         <div>
-          <Label>Company Name</Label>
-          <Input name="companyName" value={form.companyName} onChange={handleChange} placeholder="Enter company name" />
+          <label className="block text-sm font-semibold mb-1">
+            Company Name
+          </label>
+          <input
+            type="text"
+            name="companyName"
+            value={form.companyName}
+            onChange={handleChange}
+            className="w-full border rounded px-3 py-2"
+          />
         </div>
 
         <div>
-          <Label>Owner Name</Label>
-          <Input name="ownerName" value={form.ownerName} onChange={handleChange} placeholder="Enter owner name" />
+          <label className="block text-sm font-semibold mb-1">Owner Name</label>
+          <input
+            type="text"
+            name="ownerName"
+            value={form.ownerName}
+            onChange={handleChange}
+            className="w-full border rounded px-3 py-2"
+          />
         </div>
 
         <div>
-          <Label>Owner Email</Label>
-          <Input type="email" name="ownerEmail" value={form.ownerEmail} onChange={handleChange} placeholder="Enter owner email" />
+          <label className="block text-sm font-semibold mb-1">
+            Owner Email
+          </label>
+          <input
+            type="email"
+            name="ownerEmail"
+            value={form.ownerEmail}
+            onChange={handleChange}
+            className="w-full border rounded px-3 py-2"
+          />
         </div>
 
         <div>
-          <Label>Phone</Label>
-          <Input name="phone" value={form.phone} onChange={handleChange} placeholder="Enter phone number" />
+          <label className="block text-sm font-semibold mb-1">Phone</label>
+          <input
+            type="text"
+            name="phone"
+            value={form.phone}
+            onChange={handleChange}
+            className="w-full border rounded px-3 py-2"
+          />
         </div>
 
         <div>
-          <Label>City</Label>
-          <Input name="city" value={form.city} onChange={handleChange} placeholder="Enter city" />
+          <label className="block text-sm font-semibold mb-1">City</label>
+          <input
+            type="text"
+            name="city"
+            value={form.city}
+            onChange={handleChange}
+            className="w-full border rounded px-3 py-2"
+          />
         </div>
 
         <div>
-          <Label>Plan</Label>
-          <Select
-            value={form.planId}
-            onValueChange={(value) => setForm({ ...form, planId: value })}
+          <label className="block text-sm font-semibold mb-1">Plan</label>
+          <select
+            name="plan"
+            value={form.plan}
+            onChange={handleChange}
+            className="w-full border rounded px-3 py-2"
           >
-            <SelectTrigger>
-                <SelectValue placeholder={filteredPlans && filteredPlans.length > 0 ? "Select a plan" : "Loading plans..."} />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredPlans && filteredPlans.length > 0 ? (
-                  filteredPlans.map((plan) => (
-                    <SelectItem key={plan._id} value={plan._id}>
-                      {plan.name} - {(plan.price)}/mo - {plan.maxUsers} Users, {plan.maxProjects} Projects, {plan.maxStorageMB}MB Storage
-                    </SelectItem>
-                  ))
-                ) : (
-                  <SelectItem value="none" disabled>
-                    No plans available
-                  </SelectItem>
-                )}
-              </SelectContent>
-          </Select>
+            <option value="Free">Free</option>
+            <option value="Pro">Pro</option>
+            <option value="Enterprise">Enterprise</option>
+          </select>
         </div>
 
         <div className="flex justify-end gap-4 mt-4">
-          <Button variant="outline" onClick={() => navigate("/dashboard")}>Cancel</Button>
-          <Button type="submit" disabled={loading}>{loading ? "Creating..." : "Create Tenant"}</Button>
+          <button
+            type="button"
+            className="bg-gray-200 px-4 py-2 rounded"
+            onClick={() => navigate("/dashboard")}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            Create Tenant
+          </button>
         </div>
-
       </form>
     </div>
   );
