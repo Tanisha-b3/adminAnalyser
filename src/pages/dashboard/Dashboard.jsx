@@ -1,45 +1,10 @@
+
 // CompanyManagement.jsx
 import { useEffect, useState } from "react";
 import { FaEye, FaBan, FaPlay, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
 import PageContainer from "../../Components/pageLayout/PageContainer";
-
-const demoCompanies = [
-  {
-    id: "1",
-    name: "Studio A Interiors",
-    owner_name: "Alice Singh",
-    owner_email: "alice@studioa.com",
-    phone: "+1 123-456-7890",
-    city: "New York",
-    plan: "Pro",
-    status: "Active",
-    planEndDate: "2025-08-25",
-  },
-  {
-    id: "2",
-    name: "Design Hive",
-    owner_name: "Ravi Patel",
-    owner_email: "ravi@designhive.com",
-    phone: "+91 999-888-7777",
-    city: "Mumbai",
-    plan: "Enterprise",
-    status: "Suspended",
-    planEndDate: "2025-08-10",
-  },
-  {
-    id: "3",
-    name: "Modish Living",
-    owner_name: "Karen Taylor",
-    owner_email: "karen@modish.com",
-    phone: "+44 20 7946 0011",
-    city: "London",
-    plan: "Trial",
-    status: "Trial",
-    planEndDate: "2025-08-15",
-  },
-];
 
 const statusColor = {
   Active: "text-green-400",
@@ -57,8 +22,28 @@ export default function CompanyManagement() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setCompanies(demoCompanies);
-    setFiltered(demoCompanies);
+    const fetchTenants = async () => {
+      try {
+        const res = await axiosInstance.get("/tenants");
+        const mapped = res.data.map(({ tenant, admin }) => ({
+          id: tenant._id,
+          name: tenant.name,
+          city: tenant.location,
+          plan: tenant.planId?.name || "Free",
+          status: tenant.planId?.name === "Trial" ? "Active" : "Active", // adjust if backend has real status
+          planEndDate: moment(tenant.updatedAt).add(30, "days"),
+          owner_name: admin?.name,
+          owner_email: admin?.email,
+          phone: admin?.phone,
+        }));
+        setCompanies(mapped);
+        setFiltered(mapped);
+      } catch (err) {
+        console.error("Failed to fetch tenants:", err);
+      }
+    };
+
+    fetchTenants();
   }, []);
 
   const handleSearch = () => {

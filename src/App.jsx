@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { initializeAuth } from "./store/slice/authSlice";
+import { initializeAuth, logout, refreshToken } from "./store/slice/authSlice";
 
 import Sidebar from "./Components/Sidebar";
 import TopNav from "./Components/TopNav";
@@ -20,6 +20,44 @@ import AddTenant from "./pages/dashboard/components/Addtenant";
 import TenantDetail from "./pages/dashboard/components/TenantDetail";
 import SuperAdminLogin from "./pages/login/SuperAdminLogin";
 import ProtectedRoute from "./pages/login/ProtectedRoute";
+import Plan from "./pages/dashboard/plan";
+import TenantP from "./pages/dashboard/TenantCreate";
+import Issue from "./issue/issue";
+import { Ticket } from "lucide-react";
+import TicketSuperAdmin from "./issue/ticket";
+
+// Layout component for protected routes
+const ProtectedLayout = ({ children }) => {
+  return (
+    <div className="flex h-screen bg-gradient-to-br from-zinc-950 via-black to-zinc-900 overflow-hidden">
+      <Sidebar />
+      <div className="flex-1 h-full overflow-y-auto bg-gradient-to-br from-zinc-900/80 via-black/50 to-zinc-900/40 border-l border-zinc-800/50 backdrop-blur-sm">
+        <TopNav />
+        <div className="p-8 min-h-full">{children}</div>
+      </div>
+    </div>
+  );
+};
+
+// Auto-refresh token component
+const AutoRefreshToken = () => {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        await dispatch(refreshToken()).unwrap();
+        console.log("Token refreshed");
+      } catch {
+        dispatch(logout());
+      }
+    }, 5 * 60 * 1000); // refresh every 5 minutes
+
+    return () => clearInterval(interval);
+  }, [dispatch]);
+
+  return null;
+};
 
 function App() {
   const dispatch = useDispatch();
@@ -121,7 +159,7 @@ function App() {
                       />
                       <Route
                         path="/AdminAuditTracker"
-                        element={<AdminAuditTracker />}
+                        element={<AdminAuditTracker />} 
                       />
                       <Route
                         path="/AdminBillingConsole"
@@ -134,7 +172,18 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path ="/issue" element={
+          <ProtectedLayout>
+            <Issue />
+          </ProtectedLayout>
+        }/>
+         <Route path ="/ticket" element={
+          <ProtectedLayout>
+            <TicketSuperAdmin />
+          </ProtectedLayout>
+        }/>
       </Routes>
+      
     </div>
   );
 }
