@@ -13,9 +13,12 @@ import {
   FaChevronRight,
   FaBars,
   FaTimes,
-  FaUserCircle, // <-- 1. Import the new icon
+  FaUserCircle,
 } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../store/slice/authSlice"; // ✅ make sure path is correct
+import path from "path";
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -46,61 +49,34 @@ export default function Sidebar() {
   }, []);
 
   const menuItems = [
-    {
-      icon: FaTachometerAlt,
-      label: "Dashboard",
-      path: "/dashboard",
-      category: "main",
-    },
-    {
-      icon: FaUsers,
-      label: "User Management",
-      path: "/usermanagement",
-      category: "main",
-    },
-    {
-      icon: FaProjectDiagram,
-      label: "Project List",
-      path: "/AdminProjectList",
-      category: "main",
-    },
-    {
-      icon: FaChartBar,
-      label: "Billing List",
-      path: "/BillingList",
-      category: "reports",
-    },
-    {
-      icon: FaHdd,
-      label: "Tenant Manager",
-      path: "/TenantUserManager",
-      category: "system",
-    },
-    {
-      icon: FaTicketAlt,
-      label: "Support Desk",
-      path: "/AdminSupportDesk",
-      category: "support",
-    },
-    {
-      icon: FaBullhorn,
-      label: "Billing Console",
-      path: "/AdminBillingConsole",
-      category: "communication",
-    },
-    {
-      icon: FaBook,
-      label: "Audit Tracker",
-      path: "/AdminAuditTracker",
-      category: "system",
-    },
-    {
+    { icon: FaChartBar, label: "Tenant", path: "/tenantP", category: "main" },
+    { icon: FaTachometerAlt, label: "Dashboard", path: "/dashboard", category: "main" },
+    { icon: FaUsers, label: "User Management", path: "/usermanagement", category: "main" },
+    { icon: FaProjectDiagram, label: "Project List", path: "/AdminProjectList", category: "main" },
+    { icon: FaChartBar, label: "Billing List", path: "/BillingList", category: "reports" },
+    { icon: FaHdd, label: "Tenant Manager", path: "/TenantUserManager", category: "system" },
+    { icon: FaTicketAlt, label: "Support Desk", path: "/AdminSupportDesk", category: "support" },
+    { icon: FaBullhorn, label: "Billing Console", path: "/AdminBillingConsole", category: "communication" },
+    { icon: FaBars, label: "Plan", path: "/plan", category: "system" },
+   {
       icon: FaCog,
       label: "Settings",
       path: "/settings",
       category: "system",
       disabled: true,
     },
+    {
+      icon:FaBars,
+      label:"Bug",
+      path:"/issue",
+      category:"Bug",
+
+    },{
+      icon: FaBullhorn,
+      label:"issue",
+      path:"/ticket",
+      category:"ticket"
+    }
   ];
 
   const handleLogout = () => {
